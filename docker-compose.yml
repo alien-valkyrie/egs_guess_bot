@@ -1,0 +1,8 @@
+version: '3.2'
+services:
+  bot:
+    build: .
+    restart: on-failure:5
+    volumes:
+      - ${PWD}/token.txt:/opt/egs_guess_bot/token.txt:ro
+      - ${PWD}/save.data:/opt/egs_guess_bot/save.data:Z
