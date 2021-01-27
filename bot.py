@@ -276,7 +276,7 @@ Gameplay commands:
 The full solve command can take a URL in any form (specifically, it loads the page and checks if it contains the correct image). The shortcut only takes a slug (which isn't necessarily a date - for example, `question-mark-04` is a valid slug).
 """)
     elif message.content == prefix + 'source':
-        await message.channel.send("Source code isn't public yet, sorry! SoonTM.")
+        await message.channel.send("https://github.com/likuilin/egs_guess_bot")
     else:
         await game_print_image(client, message, 'Current round: (`' + prefix + 'help` for help)')
 
