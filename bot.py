@@ -128,7 +128,7 @@ async def on_message(message):
         return
 
     if (message.channel.id != channel_id): #wontfix but multiple servers makes this not work
-        await message.channel.send("Please play with the bot in <#" + str(channel_id) + "> instead of here.")
+        # await message.channel.send("Please play with the bot in <#" + str(channel_id) + "> instead of here.")
         if (message.author.id != admin_uid):
             return
         
