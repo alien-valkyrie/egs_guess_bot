@@ -145,7 +145,7 @@ async def on_message(message):
         yesterday = today - datetime.timedelta(days=1)
 
         if pair not in hs_pokes:
-            hs_pokes[pair] = [0, 0, 0]
+            hs_pokes[pair] = [datetime.date.min, datetime.date.min, 0]
 
         if hs_pokes[pair][ab] == today:
             await message.channel.send("You already poked that user today! Pokes reset at midnight UTC.")
