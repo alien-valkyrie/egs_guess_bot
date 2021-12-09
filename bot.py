@@ -30,6 +30,7 @@ non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
 # hs = save file, not sure why i called it that
 hs_scores = None # userid: [solves, fastest, attempts]
 hs_comicstats = None # comicid: [hints, fastest, skips]
+hs_pokes = None # (user a, user b): [last a ts, last b ts, turn, streak]
 
 @client.event
 async def on_ready():
@@ -126,6 +127,50 @@ async def on_message(message):
     
     if not message.content.startswith(prefix):
         return
+    
+    # pokes
+    if message.content.startswith(prefix + 'daily') or message.content.startswith(prefix + 'poke'):
+        if len(message.mentions) == 0:
+            await message.channel.send("Tag someone!")
+            return
+        pair = tuple(sorted([message.mentions[0].id, message.author.id]))
+        ab = 0 if pair[0] == message.author.id else 1
+        # hs_pokes: (user a, user b): [last a date, last b date, streak], a and b sorted
+        # only the date is tracked (to do the "reset at midnight utc" thing)
+        # each poke updates the last date of that party
+        # also, if both their and their partner's previous poke was yesterday, then increment streak
+        # otherwise (except if partner's poke was today, lol) break streak
+
+        today = datetime.datetime.now(tz=datetime.timezone.utc).date()
+        yesterday = today - datetime.timedelta(days=1)
+
+        if pair not in hs_pokes:
+            hs_pokes[pair] = [0, 0, 0]
+
+        if hs_pokes[pair][ab] == today:
+            await message.channel.send("You already poked that user today! Pokes reset at midnight UTC.")
+            return
+
+        if hs_pokes[pair][ab] == yesterday and hs_pokes[pair][1-ab] == yesterday:
+            hs_pokes[pair][2] += 1
+        elif hs_pokes[pair][ab] == yesterday and hs_pokes[pair][1-ab] == today:
+            pass
+        else:
+            hs_pokes[pair][2] = 1
+        hs_pokes[pair][ab] = today
+        hs_save()
+
+        msg = "\*pokes " + message.mentions[0].mention + "\*"
+        if hs_pokes[pair][2] > 1:
+            msg += " Streak: " + str(hs_pokes[pair][2])
+        if hs_pokes[pair][2] > 10:
+            msg += " 🔥"
+        elif hs_pokes[pair][2] > 100:
+            msg += " ❤"
+        elif hs_pokes[pair][2] > 1000:
+            msg += " 💕"
+        await message.channel.send(msg)
+        return
 
     if (message.channel.id != channel_id): #wontfix but multiple servers makes this not work
         # await message.channel.send("Please play with the bot in <#" + str(channel_id) + "> instead of here.")
@@ -202,7 +247,7 @@ async def on_message(message):
         hs_inc(hs_scores, str(message.author.id), 2)
         if correct:
             gameSuppressAnswers = True
-            #intentional bug for lauren to find
+            #intentional bug for fractal (and others!) to find
             ttime = (datetime.datetime.now() - gameInitTime).seconds
             print(ttime < hs_scores[str(message.author.id)][1], ttime, hs_scores[str(message.author.id)][1])
             if message.author.id not in hs_scores or ttime < hs_scores[str(message.author.id)][1]:
@@ -401,7 +446,7 @@ def hs_inc(dic, key, value, set = None): #highscores_increment, or setting, lol
 
 def hs_save():
     fw = open('save.data', 'wb')
-    pickle.dump([hs_scores, hs_comicstats, gameComicId, gameX, gameY], fw)
+    pickle.dump([hs_scores, hs_comicstats, gameComicId, gameX, gameY, hs_pokes], fw)
     fw.close()
     
 def hs_load():
@@ -410,13 +455,18 @@ def hs_load():
     global gameComicId
     global gameX
     global gameY
-    fd = open('save.data', 'rb')
-    data = pickle.load(fd)
+    global hs_pokes
+    with open('save.data', 'rb') as f:
+        data = pickle.load(f)
     hs_scores = data[0]
     hs_comicstats = data[1]
     gameComicId = data[2]
     gameX = data[3]
     gameY = data[4]
+    if len(data) <= 5:
+        hs_pokes = {}
+    else:
+        hs_pokes = data[5]
 
 hs_load()
 
