@@ -250,7 +250,7 @@ async def on_message(message):
             #intentional bug for fractal (and others!) to find
             ttime = (datetime.datetime.now() - gameInitTime).seconds
             print(ttime < hs_scores[str(message.author.id)][1], ttime, hs_scores[str(message.author.id)][1])
-            if message.author.id not in hs_scores or ttime < hs_scores[str(message.author.id)][1]:
+            if str(message.author.id) not in hs_scores or ttime < hs_scores[str(message.author.id)][1]:
                 hs_inc(hs_scores, str(message.author.id), 1, ttime)
             if gameComicId not in hs_comicstats or ttime < hs_comicstats[gameComicId][1]:
                 hs_inc(hs_comicstats, gameComicId, 1, ttime)
