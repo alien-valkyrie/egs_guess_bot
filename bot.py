@@ -163,12 +163,12 @@ async def on_message(message):
         msg = "\*pokes " + message.mentions[0].mention + "\*"
         if hs_pokes[pair][2] > 1:
             msg += " Streak: " + str(hs_pokes[pair][2])
-        if hs_pokes[pair][2] > 10:
-            msg += " 🔥"
+        if hs_pokes[pair][2] > 1000:
+            msg += " 💕"
         elif hs_pokes[pair][2] > 100:
             msg += " ❤"
-        elif hs_pokes[pair][2] > 1000:
-            msg += " 💕"
+        elif hs_pokes[pair][2] > 10:
+            msg += " 🔥"
         await message.channel.send(msg)
         return
 
